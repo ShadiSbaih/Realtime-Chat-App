@@ -42,28 +42,31 @@ export const sendMessages = async (req, res) => {
         const { id: receiverId } = req.params;
         const senderId = req.user._id;
 
-        let imageUrl;
+        let imageUrl = null;
 
         if (image) {
-            // Assuming image is a base64 string, you might want to save it to a cloud storage or file system
-            // For simplicity, let's assume image is already a URL or path
-            const uploadedImageResponse = await cloudinary.uploader(image); // In a real application, you would handle the image upload here
-            imageUrl = uploadedImageResponse.secure_url; // In a real application, you would handle the image upload here
+            try {
+                // Upload image to Cloudinary
+                const result = await cloudinary.uploader.upload(image, {
+                    folder: "chat_images",
+                    resource_type: "auto"
+                });
+                imageUrl = result.secure_url;
+            } catch (uploadError) {
+                console.error("Error uploading image:", uploadError);
+                return res.status(400).json({ message: "Failed to upload image" });
+            }
         }
 
         const newMessage = new Message({
             senderId,
             receiverId,
-            text,
+            text: text || "",
             image: imageUrl
         });
         
         await newMessage.save();
-        res.status(201).json({
-            message: "Message sent successfully",
-            data: newMessage
-        });
-
+        res.status(201).json(newMessage);
 
     } catch (error) {
         console.error("Error sending message:", error);
