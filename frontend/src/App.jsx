@@ -6,12 +6,25 @@ import LoginPage from "./pages/LoginPage"
 import SettingsPage from "./pages/SettingsPage"
 import ProfilePage from "./pages/ProfilePage"
 import { useAuthStore } from "./store/useAuthStore"
+import { useThemeStore } from "./store/useThemeStore"
 import { useEffect } from "react"
 import { Loader } from "lucide-react"
 import { Toaster } from "react-hot-toast"
 
 function App() {
+  // Get the current theme from the useThemeStore
+  const { theme } = useThemeStore();
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
+  // Check authentication status on initial load
+  // This will call the checkAuth function from the useAuthStore
+  // and update the authUser state accordingly
+  // The isCheckingAuth state will be true while the checkAuth function is running
+  // and false once the check is complete
+  // If authUser is null, it means the user is not authenticated
+  // If authUser is not null, it means the user is authenticated
+  // If isCheckingAuth is true, it means the checkAuth function is still running
+  // If isCheckingAuth is false, it means the checkAuth function has completed
+  // If authUser is null and isCheckingAuth is false, it means the user is not authenticated    
 
   useEffect(() => {
     checkAuth();
@@ -27,7 +40,7 @@ function App() {
 
 
   return (
-    <div>
+    <div data-theme={theme} >
       <Navbar />
       {/* Main content area */}
       <Routes>
