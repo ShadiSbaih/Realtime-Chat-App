@@ -1,29 +1,29 @@
 import mongoose from "mongoose";
 
-const userSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema(
+  {
     email: {
-        type: String,
-        required: true,
-        unique: true,
+      type: String,
+      required: true,
+      unique: true,
     },
     fullName: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
     },
     password: {
-        type: String,
-        required: true,
-        minlength: 6,
+      type: String,
+      required: true,
+      minlength: 6,
     },
     profilePic: {
-        type: String,
-        default: "https://img.freepik.com/premium-vector/male-avatar-icon-unknown-anonymous-person-default-avatar-profile-icon-social-media-user-business-man-man-profile-silhouette-isolated-white-background-vector-illustration_735449-120.jpg"
+      type: String,
+      default: "",
     },
-}, {
-    timestamps: true,
-});
+  },
+  { timestamps: true }
+);
 
-const User = mongoose.model("User"//must be PascalCase to match the collection name in MongoDB
-                            , userSchema);
+const User = mongoose.model("User", userSchema);
 
 export default User;
