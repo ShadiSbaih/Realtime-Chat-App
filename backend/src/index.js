@@ -7,9 +7,13 @@ import { connectDB } from "../lib/db.js"
 import cors from 'cors';
 
 const app = express();
+
+// Increase payload size limit
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
 // Middleware
 app.use(cookieParser());
-app.use(express.json());
 
 app.use(cors({
   origin: process.env.CLIENT_URL,

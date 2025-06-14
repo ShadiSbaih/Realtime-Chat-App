@@ -12,8 +12,12 @@ export const useAuthStore = create((set) => ({
     checkAuth: async () => {
         try {
             const response = await axiosInstance.get("/auth/check");
-            set({ authUser: response.data.user });
-            console.log("Authenticated user:", response.data.user);
+            if (response.data.success && response.data.user) {
+                set({ authUser: response.data.user });
+                console.log("Authenticated user:", response.data.user);
+            } else {
+                set({ authUser: null });
+            }
         } catch (error) {
             console.error("Error checking authentication:", error);
             set({ authUser: null });
@@ -26,7 +30,7 @@ export const useAuthStore = create((set) => ({
     signup: async (data) => {
         set({ isSigningUp: true });
         const loadingToast = toast.loading("Creating your account...");
-        
+
         try {
             const response = await axiosInstance.post("/auth/signup", data);
             set({ authUser: response.data.user });
@@ -44,7 +48,7 @@ export const useAuthStore = create((set) => ({
 
     logout: async () => {
         const loadingToast = toast.loading("Logging out...");
-        
+
         try {
             await axiosInstance.post("/auth/logout");
             set({ authUser: null });
@@ -60,7 +64,7 @@ export const useAuthStore = create((set) => ({
     login: async (data) => {
         set({ isLoggingIn: true });
         const loadingToast = toast.loading("Signing you in...");
-        
+
         try {
             const response = await axiosInstance.post("/auth/login", data);
             set({ authUser: response.data.user });
@@ -72,6 +76,26 @@ export const useAuthStore = create((set) => ({
             toast.error("Login failed. Please check your credentials.");
         } finally {
             set({ isLoggingIn: false });
+        }
+    },
+    updateProfile: async (data) => {
+        set({ isUpdatingProfile: true });
+        const loadingToast = toast.loading("Updating profile...");
+        try {
+            const res = await axiosInstance.put("/auth/update-profile", data);
+            if (res.data.success && res.data.user) {
+                set({ authUser: res.data.user });
+                toast.dismiss(loadingToast);
+                toast.success("Profile updated successfully");
+            } else {
+                throw new Error("Failed to update profile");
+            }
+        } catch (error) {
+            console.log("error in update profile:", error);
+            toast.dismiss(loadingToast);
+            toast.error(error.response?.data?.message || "Failed to update profile");
+        } finally {
+            set({ isUpdatingProfile: false });
         }
     },
 }));

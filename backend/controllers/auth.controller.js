@@ -244,34 +244,50 @@ export const updateProfile = async (req, res) => {
             });
         }
 
-        const uploadResponse = await cloudinary.uploader.upload(profilePic);
-        // Find the user by ID and update the profile picture
-        const updatedUser = await User.findByIdAndUpdate(userId, {
-            profilePic: uploadResponse.secure_url
-        },
-            { new: true }//By default, findOneAndUpdate() returns the document as it was before update was applied. If you set new: true, findOneAndUpdate() will instead give you the object after update was applied.
-        );
-        if (!updatedUser) {
-            return res.status(404).json({
+        try {
+            const uploadResponse = await cloudinary.uploader.upload(profilePic, {
+                folder: "profile_pictures",
+                resource_type: "auto"
+            });
+
+            // Find the user by ID and update the profile picture
+            const updatedUser = await User.findByIdAndUpdate(
+                userId,
+                { profilePic: uploadResponse.secure_url },
+                { new: true }
+            );
+
+            if (!updatedUser) {
+                return res.status(404).json({
+                    success: false,
+                    error: {
+                        code: "USER_NOT_FOUND",
+                        message: "User not found",
+                    },
+                });
+            }
+
+            return res.status(200).json({
+                success: true,
+                message: "Profile updated successfully",
+                user: {
+                    id: updatedUser._id,
+                    email: updatedUser.email,
+                    fullName: updatedUser.fullName,
+                    profilePic: updatedUser.profilePic,
+                },
+            });
+        } catch (uploadError) {
+            console.error("Error uploading to Cloudinary:", uploadError);
+            return res.status(500).json({
                 success: false,
                 error: {
-                    code: "USER_NOT_FOUND",
-                    message: "User not found",
+                    code: "UPLOAD_ERROR",
+                    message: "Failed to upload image to Cloudinary",
+                    details: { error: uploadError.message },
                 },
             });
         }
-
-        return res.status(200).json({
-            success: true,
-            message: "Profile updated successfully",
-            user: {
-                id: updatedUser._id,
-                email: updatedUser.email,
-                fullName: updatedUser.fullName,
-                profilePic: updatedUser.profilePic,
-            },
-        });
-
     } catch (error) {
         console.error("Error during profile update:", error);
         return res.status(500).json({
@@ -301,6 +317,12 @@ export const checkAuth = (req, res) => {
         return res.status(200).json({
             success: true,
             message: "User is authenticated",
+            user: {
+                id: user._id,
+                email: user.email,
+                fullName: user.fullName,
+                profilePic: user.profilePic,
+            }
         });
     } catch (error) {
         console.error("Error during authentication check:", error);
